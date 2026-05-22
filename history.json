@@ -1,0 +1,24 @@
+[
+  {
+    "date": "2026-05-22",
+    "count": 5,
+    "titles": [
+      "Learn to Explain: Multimodal Reasoning via Thought Chains for Science Question Answering",
+      "InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency",
+      "R1-Onevision: Advancing Generalized Multimodal Reasoning Through Cross-Modal Formalization",
+      "GLM-4.1V-Thinking: Towards Versatile Multimodal Reasoning with Scalable Reinforcement Learning",
+      "MMMU: A Massive Multi-Discipline Multimodal Understanding and Reasoning Benchmark for Expert AGI"
+    ]
+  },
+  {
+    "date": "2026-05-21",
+    "count": 5,
+    "titles": [
+      "Equilibrium Reasoners: Learning Attractors Enables Scalable Reasoning",
+      "Uni-Edit: Intelligent Editing Is A General Task For Unified Model Tuning",
+      "DeepWeb-Bench: A Deep Research Benchmark Demanding Massive Cross-Source Evidence and Long-Horizon Derivation",
+      "WikiVQABench: A Knowledge-Grounded Visual Question Answering Benchmark from Wikipedia and Wikidata",
+      "You Only Need Minimal RLVR Training: Extrapolating LLMs via Rank-1 Trajectories"
+    ]
+  }
+]

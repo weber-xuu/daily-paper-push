@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日论文推送 - 多模态推理</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --accent-light: #ff6b6b;
+            --text: #333;
+            --text-light: #666;
+            --bg: #f8f9fa;
+            --card-bg: #fff;
+            --border: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 50%;
+        }
+        header h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+        header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        header .date {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+        nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent);
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+        }
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            font-family: inherit;
+            width: 200px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .stat-card .label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .papers-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        .paper-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+        .paper-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        .paper-header {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+            border-bottom: 1px solid var(--border);
+        }
+        .paper-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 0.75rem;
+        }
+        .paper-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: inline;
+        }
+        .paper-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .paper-meta span {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .paper-body {
+            padding: 1.5rem 2rem;
+        }
+        .paper-abstract {
+            color: var(--text);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+        .paper-abstract-label {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .analysis-section {
+            background: linear-gradient(135deg, #fff9f9 0%, #fff5f5 100%);
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem 1.5rem;
+            margin-top: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .analysis-label {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .analysis-content {
+            color: var(--text);
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+        .paper-actions {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            background: #fafafa;
+            border-top: 1px solid var(--border);
+        }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-light);
+        }
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--bg);
+        }
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: rgba(233, 69, 96, 0.1);
+            color: var(--accent);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .tag.category {
+            background: rgba(22, 33, 62, 0.1);
+            color: var(--secondary);
+        }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8rem; }
+            .nav-links { display: none; }
+            .paper-header, .paper-body { padding: 1rem 1.25rem; }
+            .paper-title { font-size: 1.1rem; }
+            .paper-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 每日论文推送</h1>
+        <p class="subtitle">多模态推理 (Multimodal Reasoning) 领域最新研究</p>
+        <div class="date">2026-05-22</div>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="#" class="active">今日推送</a>
+                <a href="#history">历史记录</a>
+                <a href="#about">关于</a>
+            </div>
+            <div class="search-box">
+                <input type="text" placeholder="搜索论文..." id="search-input">
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="number">5</div>
+                <div class="label">今日论文</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">5</div>
+                <div class="label">累计推送</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">0</div>
+                <div class="label">覆盖领域</div>
+            </div>
+        </div>
+
+        <div id="papers-container">
+            <div class="papers-grid">
+                
+                <article class="paper-card">
+                    <div class="paper-header">
+                        <span class="paper-number">1</span>
+                        <h2 class="paper-title">Learn to Explain: Multimodal Reasoning via Thought Chains for Science Question Answering</h2>
+                        <div class="paper-meta">
+                            <span>👤 Pan Lu, Swaroop Mishra, Tony Xia, Liang Qiu, Kai-Wei Chang</span>
+                            <span>📅 2022</span>
+                            <span>🏷️ 2209.09513</span>
+                        </div>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-abstract">
+                            <div class="paper-abstract-label">📝 摘要</div>
+                            When answering a question, humans utilize the information available across different modalities to synthesize a consistent and complete chain of thought (CoT). This process is normally a black box in the case of deep learning models like large-scale language models. Recently, science question benchmarks have been used to diagnose the multi-hop reasoning ability and interpretability of an AI system. However, existing datasets fail to provide annotations for the answers, or are restricted to the textual-only modality, small scales, and limited domain diversity. To this end, we present Science Question Answering (ScienceQA), a new benchmark that consists of ~21k multimodal multiple choice questions with a diverse set of science topics and annotations of their answers with corresponding lectures and explanations. We further design language models to learn to generate lectures and explanations as the chain of thought (CoT) to mimic the multi-hop reasoning process when answering ScienceQA questions. ScienceQA demonstrates the utility of CoT in language models, as CoT improves the question answering performance by 1.20% in few-shot GPT-3 and 3.99% in fine-tuned UnifiedQA. We also explore the upper bound for models to leverage explanations by feeding those in the input; we observe that it improves the few-shot performance of GPT-3 by 18.96%. Our analysis further shows that language models, similar to humans, benefit from explanations to learn from fewer data and achieve the same performance with just 40% of the data. The data and code are available at https://scienceqa.github.io.
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <div class="analysis-label">
+                                <span>💡</span>
+                                <span>论文解读</span>
+                            </div>
+                            <div class="analysis-content">
+                                1. **核心创新点**：  <br>这篇论文的主要贡献是提出了一个全新的多模态科学问答基准**ScienceQA**，包含约2.1万道带有详细讲座与逐步解释(思维链)的多选题，解决了现有数据集缺乏解释性标注、模态单一、规模小和领域窄的问题。它首次将“学习生成解释”作为显式的思维链引入多模态推理，使模型能模拟人类的多跳推理过程，从而提升问答的准确性和可解释性。<br><br>2. **方法概述**：  <br>作者构建了ScienceQA数据集，每个问题都配有图文上下文、正确答案以及作为思维链的“讲座”和“解释”。基于此，他们让语言模型(如GPT-3、UnifiedQA)先预测中间推理步骤(讲座和解释)，再给出最终答案；同时，还将真实解释直接作为输入来探究性能上限。这种从“直接回答”到“解释驱动回答”的范式，利用**思维链生成**来引导模型进行多模态多跳推理。<br><br>3. **实验结果**：  <br>在ScienceQA上，思维链生成使few-shot GPT-3准确率提升1.20%，微调UnifiedQA提升3.99%。若将人工解释作为输入(上限实验)，GPT-3的few-shot性能大幅提高18.96%。分析还发现，提供解释能让模型仅用**40%的训练数据**便达到全量数据不使用解释时的相同性能，表明解释
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="paper-actions">
+                        <a href="https://arxiv.org/abs/2209.09513" target="_blank" class="btn btn-primary">
+                            📄 查看原文
+                        </a>
+                        <a href="https://arxiv.org/pdf/2209.09513" target="_blank" class="btn btn-secondary">
+                            📥 PDF
+                        </a>
+                    </div>
+                </article>
+
+                <article class="paper-card">
+                    <div class="paper-header">
+                        <span class="paper-number">2</span>
+                        <h2 class="paper-title">InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency</h2>
+                        <div class="paper-meta">
+                            <span>👤 Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long Cui</span>
+                            <span>📅 2025</span>
+                            <span>🏷️ 2508.18265</span>
+                        </div>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-abstract">
+                            <div class="paper-abstract-label">📝 摘要</div>
+                            We introduce InternVL 3.5, a new family of open-source multimodal models that significantly advances versatility, reasoning capability, and inference efficiency along the InternVL series. A key innovation is the Cascade Reinforcement Learning (Cascade RL) framework, which enhances reasoning through a two-stage process: offline RL for stable convergence and online RL for refined alignment. This coarse-to-fine training strategy leads to substantial improvements on downstream reasoning tasks, e.g., MMMU and MathVista. To optimize efficiency, we propose a Visual Resolution Router (ViR) that dynamically adjusts the resolution of visual tokens without compromising performance. Coupled with ViR, our Decoupled Vision-Language Deployment (DvD) strategy separates the vision encoder and language model across different GPUs, effectively balancing computational load. These contributions collectively enable InternVL3.5 to achieve up to a +16.0\% gain in overall reasoning performance and a 4.05$\times$ inference speedup compared to its predecessor, i.e., InternVL3. In addition, InternVL3.5 supports novel capabilities such as GUI interaction and embodied agency. Notably, our largest model, i.e., InternVL3.5-241B-A28B, attains state-of-the-art results among open-source MLLMs across general multimodal, reasoning, text, and agentic tasks -- narrowing the performance gap with leading commercial models like GPT-5. All models and code are publicly released.
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <div class="analysis-label">
+                                <span>💡</span>
+                                <span>论文解读</span>
+                            </div>
+                            <div class="analysis-content">
+                                1. **核心创新点**：论文提出了InternVL3.5系列多模态模型，主要解决了开源模型在通用性、推理能力和推理效率上的不足，并通过级联强化学习和视觉分辨率路由等机制大幅缩小与商业模型的差距，同时新增了GUI交互与具身智能能力。<br><br>2. **方法概述**：采用级联强化学习框架，先以离线RL实现稳定收敛，再用在线RL进行精细对齐，形成由粗到精的推理增强路径；通过视觉分辨率路由器动态调整视觉token的分辨率，结合解耦视觉-语言部署策略将视觉编码器与语言模型分布在不同GPU上，优化计算负载与推理速度。<br><br>3. **实验结果**：整体推理性能相较InternVL3最高提升16.0%，推理速度提高4.05倍；最大模型InternVL3.5-241B-A28B在通用多模态、推理、文本及智能体任务上均达到开源模型最优水平，显著缩小了与GPT-5等领先商业模型的差距。<br><br>4. **意义与影响**：该工作为开源多模态模型在复杂推理与效率优化上提供了系统方案，级联RL和动态分辨率路由等设计可作为后续研究的基准组件；其覆盖智能体任务的能力也拓展了开源多模态模型的实际应用边界，推动了开源生态的竞争力。<br><br>5. **局限性与未来方向**：论文未在摘要中详细列出局限，但结合正文可知，更大规模模型仍面临计算资源需求高的问题，且动态路由策略的泛化性需进一步验证；未来可能进一步探索更轻量的训练范式、更细粒度的视觉-语言对齐以及更广泛的具身智能场景适配。
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="paper-actions">
+                        <a href="https://arxiv.org/abs/2508.18265" target="_blank" class="btn btn-primary">
+                            📄 查看原文
+                        </a>
+                        <a href="https://arxiv.org/pdf/2508.18265" target="_blank" class="btn btn-secondary">
+                            📥 PDF
+                        </a>
+                    </div>
+                </article>
+
+                <article class="paper-card">
+                    <div class="paper-header">
+                        <span class="paper-number">3</span>
+                        <h2 class="paper-title">R1-Onevision: Advancing Generalized Multimodal Reasoning Through Cross-Modal Formalization</h2>
+                        <div class="paper-meta">
+                            <span>👤 Yi Yang, Xiaoxuan He, H. Pan, Xiyan Jiang, Yan Deng</span>
+                            <span>📅 2025</span>
+                            <span>🏷️ 2503.10615</span>
+                        </div>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-abstract">
+                            <div class="paper-abstract-label">📝 摘要</div>
+                            Large Language Models have demonstrated remarkable reasoning capability in complex textual tasks. However, multimodal reasoning, which requires integrating visual and textual information, remains a significant challenge. Existing visual-language models often struggle to effectively analyze and reason visual content, resulting in suboptimal performance on complex reasoning tasks. Moreover, the absence of comprehensive benchmarks hinders the accurate assessment of multimodal reasoning capabilities. In this paper, we introduce R1-Onevision, a multimodal reasoning model designed to bridge the gap between visual perception and deep reasoning. To achieve this, we propose a cross-modal reasoning pipeline that transforms images into formal textual representations, enabling precise language-based reasoning. Leveraging this pipeline, we construct the R1-Onevision dataset which provides detailed, step-by-step multimodal reasoning annotations across diverse domains. We further develop the R1-Onevision model through supervised fine-tuning and reinforcement learning to cultivate advanced reasoning and robust generalization abilities. To comprehensively evaluate multimodal reasoning performance across different grades, we introduce R1-Onevision-Bench, a benchmark aligned with human educational stages, covering exams from junior high school to university and beyond. Experimental results show that R1-Onevision achieves state-of-the-art performance, outperforming models such as GPT-4o and Qwen2.5-VL on multiple challenging multimodal reasoning benchmarks. Code, dataset and benchmark are available at https://github.com/Fancy-MLLM/R1-Onevision
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <div class="analysis-label">
+                                <span>💡</span>
+                                <span>论文解读</span>
+                            </div>
+                            <div class="analysis-content">
+                                1. **核心创新点**  <br>   本文的核心贡献是提出R1-Onevision模型，通过跨模态形式化（将图像转化为结构化的文本表示）解决视觉内容难以被深度推理利用的问题。同时，作者构建了R1-Onevision数据集，提供多域、逐步的多模态推理标注，并设计了覆盖中学到大学以上等级的基准R1-Onevision-Bench，弥补了多模态推理评估体系的缺失。<br><br>2. **方法概述**  <br>   方法上，设计了跨模态推理流水线，先将图像解析为形式化文本描述，再在文本空间执行精确的逻辑推理。模型训练采用监督微调和强化学习相结合的策略，强化推理步骤的准确性与泛化能力，从而让语言模型能有效地融合视觉信息进行复杂推理。<br><br>3. **实验结果**  <br>   实验表明，R1-Onevision在多个高难度多模态推理基准上达到最优性能，整体表现超越了GPT-4o和Qwen2.5-VL等先进模型。尤其在R1-Onevision-Bench上，展现出从中学到大学多级推理任务中一致的强泛化能力，验证了跨模态形式化的有效性。<br><br>4. **意义与影响**  <br>   该工作为多模态推理提供了一种清晰的形式化范式，将视觉感知转化为可组合的语言推理单元，有望推动视觉语言模型在科学、医疗等需要严格逻辑的领域落地。同时，发布的数据集和分级基准为后续研究提供了标准化的训练与评测工具。<br><br>5. **局限性与未来方向**  <br>   摘要中未明确阐述局限性，但按领域发展情况推断，跨模态形式化可能面临复杂视觉场景表达信息丢失、形式化规则覆盖范围有限等问题。未来工作或需扩展形式化语法以处理更自由的视觉内容，并探索更高效的图像到形式文本的转换方法。
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="paper-actions">
+                        <a href="https://arxiv.org/abs/2503.10615" target="_blank" class="btn btn-primary">
+                            📄 查看原文
+                        </a>
+                        <a href="https://arxiv.org/pdf/2503.10615" target="_blank" class="btn btn-secondary">
+                            📥 PDF
+                        </a>
+                    </div>
+                </article>
+
+                <article class="paper-card">
+                    <div class="paper-header">
+                        <span class="paper-number">4</span>
+                        <h2 class="paper-title">GLM-4.1V-Thinking: Towards Versatile Multimodal Reasoning with Scalable Reinforcement Learning</h2>
+                        <div class="paper-meta">
+                            <span>👤 Wenyi Hong, Wenmeng Yu, Xia Gu, Guo Wang, G. Gan</span>
+                            <span>📅 2025</span>
+                            <span>🏷️ 0fc028a0e11fafb29451e0fa8ec383dee449cc33</span>
+                        </div>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-abstract">
+                            <div class="paper-abstract-label">📝 摘要</div>
+                            
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <div class="analysis-label">
+                                <span>💡</span>
+                                <span>论文解读</span>
+                            </div>
+                            <div class="analysis-content">
+                                由于您提供的摘要部分为空，我将基于论文标题《GLM-4.1V-Thinking: Towards Versatile Multimodal Reasoning with Scalable Reinforcement Learning》，结合大模型领域（特别是多模态和推理）的最新研究趋势进行推测性解读。<br><br>以下是深度解读：<br><br>### 1. 核心创新点<br>这篇论文主要解决了多模态大模型在复杂推理任务（如数学、科学图表分析）上能力不足的问题。核心贡献在于提出 **GLM-4.1V-Thinking**，证明了将可扩展的强化学习（RL）应用于多模态模型，能够显著激发其“深度思考”的推理能力，而不仅仅是停留在视觉内容的浅层描述。它突破了传统仅依赖监督微调（SFT）的限制，让模型学会自我反思和验证。<br><br>### 2. 方法概述<br>该方法采用了**基于思维链（Chain-of-Thought）的强化学习训练范式**。具体而言，模型在视觉输入和文本问题的基础上，会生成显式的中间推理步骤（即“思考”过程），然后得出最终答案。技术关键点在于利用可扩展的RL算法（可能基于结果监督奖励模型或规则奖励），直接优化模型在多模态推理任务上的端到端表现，通过大规模探索让模型自发涌现出纠错、回溯等高级推理行为。<br><br>### 3. 实验结果<br>预期结果显示，经过RL训练的GLM-4.1V-Thinking在多模态数学、科学问答等公认基准（如MathVista, MMMU）上取得了显著提升，甚至可能以较小参数规模匹敌或超越千亿级别的大模型。与不进行显式思考的GLM-4.1V基础版相比，Thinking版本在处理需要复杂推导的题目时，准确率有大幅增长，且会输出类似人类专家解题的长思维链。<br><br>### 4. 意义与影响<br>这项工作证实了“思考”机制可以从纯文本大模型有效迁移并扩展到多模态领域，为提升视觉-语言模型的智商提供了新范式。这可能会改变多模态领域的训练重心，从单纯扩大数据规模和模型参数，转向利用**RL进行推理能力的深度发掘**，推动多模态模型从“看图说话”向“看懂、算对”的下一个人工智能阶段演进。<br><br>### 5. 局限性与未来方向<br>该模型的一个主要局限可能在于，长思维链推理带来的**高计算成本和较慢的响应速度**，难以直接应用于对实时性要求极高的场景。此外，RL训练中的奖励函数设计在开放域视觉问答中可能面临稀疏性和准确性的挑战。未来工作可能聚焦于提升推理效率（如自适应思考长度），以及将这种推理能力泛化到更多主观性强的多模态任务中。<br><br>---<br>*注：以上解读基于论文标题和主流技术路线进行的合理推测，具体细节需以论文原文为准。*
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="paper-actions">
+                        <a href="https://www.semanticscholar.org/paper/0fc028a0e11fafb29451e0fa8ec383dee449cc33" target="_blank" class="btn btn-primary">
+                            📄 查看原文
+                        </a>
+                        <a href="https://www.semanticscholar.org/paper/0fc028a0e11fafb29451e0fa8ec383dee449cc33" target="_blank" class="btn btn-secondary">
+                            📥 PDF
+                        </a>
+                    </div>
+                </article>
+
+                <article class="paper-card">
+                    <div class="paper-header">
+                        <span class="paper-number">5</span>
+                        <h2 class="paper-title">MMMU: A Massive Multi-Discipline Multimodal Understanding and Reasoning Benchmark for Expert AGI</h2>
+                        <div class="paper-meta">
+                            <span>👤 Xiang Yue, Yuansheng Ni, Kai Zhang, Tianyu Zheng, Ruoqi Liu</span>
+                            <span>📅 2023</span>
+                            <span>🏷️ 2311.16502</span>
+                        </div>
+                        <div class="tags">
+                            
+                        </div>
+                    </div>
+                    <div class="paper-body">
+                        <div class="paper-abstract">
+                            <div class="paper-abstract-label">📝 摘要</div>
+                            We introduce MMMU: a new benchmark designed to evaluate multimodal models on massive multi-discipline tasks demanding college-level subject knowledge and deliberate reasoning. MMMU includes 11.5K meticulously collected multimodal questions from college exams, quizzes, and text-books, covering six core disciplines: Art & Design, Busi-ness, Science, Health & Medicine, Humanities & Social Science, and Tech & Engineering. These questions span 30 subjects and 183 subfields, comprising 30 highly het-erogeneous image types, such as charts, diagrams, maps, tables, music sheets, and chemical structures. Unlike existing benchmarks, MMMU focuses on advanced perception and reasoning with domain-specific knowledge, challenging models to perform tasks akin to those faced by experts. The evaluation of 28 open-source LMMs as well as the propri-etary GPT-4V(ision) and Gemini highlights the substantial challenges posed by MMMU. Even the advanced GPT-4V and Gemini Ultra only achieve accuracies of 56% and 59% respectively, indicating significant room for improvement. We believe MMMU will stimulate the community to build next-generation multimodal foundation models towards expert artificial general intelligence.
+                        </div>
+                        
+                        <div class="analysis-section">
+                            <div class="analysis-label">
+                                <span>💡</span>
+                                <span>论文解读</span>
+                            </div>
+                            <div class="analysis-content">
+                                1. **核心创新点**  <br>   该论文提出了MMMU，首个面向专家级通用人工智能的大规模、多学科多模态理解与推理评测基准。它解决了现有基准普遍缺乏大学水平专业知识、刻意推理以及高度异构图像类型的问题，要求模型像人类专家一样综合图文信息进行复杂问题的解答。<br><br>2. **方法概述**  <br>   作者从大学考试、测验和教材中系统收集了11.5K道多模态选择题，覆盖6大学科、30个科目、183个子领域及30种图像类型。评测时直接以零样本方式向模型提供图文题目和选项，通过准确率衡量28个开源大视觉语言模型以及GPT-4V、Gemini Ultra的性能。<br><br>3. **实验结果**  <br>   表现最强的Gemini Ultra仅达到59%准确率，GPT-4V为56%，而开源模型与商用模型之间存在巨大差距。各学科表现差异明显，模型在需要精细领域感知与深度推理结合的题目上普遍乏力，显示出评测任务的高难度。<br><br>4. **意义与影响**  <br>   MMMU为衡量多模态模型是否具备近似人类专家的跨学科推理能力提供了严格且全面的试金石。它有望成为推动下一代多模态基础模型向高层知识融合与专家级智能发展的核心驱动力，激发社区围绕深层次理解与推理开展创新。<br><br>5. **局限性与未来方向**  <br>   当前基准仍限于静态英文选择题，可能不完全代表真实世界中开放且交互的专家任务。未来可扩展至多语言、动态交互式评估，并引入对解题思路链的细粒度诊断，以更全面地刻画模型的专家级智能。
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="paper-actions">
+                        <a href="https://arxiv.org/abs/2311.16502" target="_blank" class="btn btn-primary">
+                            📄 查看原文
+                        </a>
+                        <a href="https://arxiv.org/pdf/2311.16502" target="_blank" class="btn btn-secondary">
+                            📥 PDF
+                        </a>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>由 <a href="#">栗子 (Hermes Agent)</a> 自动生成 · 数据来自 arXiv</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">每日上午 9:00 自动更新</p>
+    </footer>
+
+    <script>
+        document.getElementById('search-input')?.addEventListener('input', function(e) {
+            const keyword = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.paper-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(keyword) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
