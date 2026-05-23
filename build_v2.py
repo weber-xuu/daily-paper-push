@@ -18,6 +18,39 @@ if os.path.exists(HISTORY_JSON):
 papers_json = json.dumps(papers_data, ensure_ascii=False, indent=2)
 history_json = json.dumps(history_data, ensure_ascii=False, indent=2)
 
+# Build category classification
+CATEGORIES = {
+    "VQA & Visual": {"keywords": ["vqa", "visual question", "visual reasoning", "visual entailment", "image reasoning", "spatial reasoning", "scene understanding"], "icon": "📊"},
+    "Chain-of-Thought": {"keywords": ["chain of thought", "cot", "science qa", "step-by-step", "reasoning chain", "explainable", "thought chains", "explanation"], "icon": "🔗"},
+    "Document & Chart": {"keywords": ["document", "chart", "diagram", "infographic", "table", "ocr", "document understanding", "layout"], "icon": "📈"},
+    "Video Understanding": {"keywords": ["video", "temporal", "action recognition", "frame", "motion", "pose", "camera", "streaming", "tracking"], "icon": "🎬"},
+    "Embodied & Nav": {"keywords": ["navigation", "vln", "embodied", "robot", "manipulation", "gesture", "agent", "habitat", "action model", "visuomotor"], "icon": "🤖"},
+    "Math & Geometry": {"keywords": ["math", "mathematical", "geometry", "arithmetic", "numeric", "algebra", "calculation", "equation"], "icon": "🧮"},
+    "Cross-Modal Gen": {"keywords": ["generation", "image generation", "text-to-image", "cross-modal", "image editing", "video generation", "synthesis", "diffusion", "controlled generation"], "icon": "🎨"},
+}
+def classify_paper(title, summary):
+    text = (title + " " + summary).lower()
+    results = []
+    for cat_name, cat_info in CATEGORIES.items():
+        score = sum(1 for kw in cat_info["keywords"] if kw in text)
+        if score > 0:
+            results.append((score, cat_name, cat_info["icon"]))
+    results.sort(key=lambda x: -x[0])
+    if not results:
+        return [("Other", "📌")]
+    top_score = results[0][0]
+    return [(name, icon) for score, name, icon in results if score >= top_score * 0.4]
+
+cat_counts = {}
+for p in papers_data.get("papers", []):
+    cats = classify_paper(p.get("title", ""), p.get("summary", ""))
+    for cat_name, icon in cats:
+        if cat_name not in cat_counts:
+            cat_counts[cat_name] = {"count": 0, "icon": icon}
+        cat_counts[cat_name]["count"] += 1
+cat_json = json.dumps(cat_counts, ensure_ascii=False)
+
+
 # Build paper cards
 cards = []
 for i, p in enumerate(papers_data.get('papers', [])):
@@ -68,7 +101,7 @@ pc = len(papers_data.get('papers', []))
 stats = f'''<div class="stats-bar" id="stats-bar">
     <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-number" id="stat-today">{pc}</div><div class="stat-label">今日论文</div></div>
     <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-number" id="stat-total">{tc}</div><div class="stat-label">累计推送</div></div>
-    <div class="stat-card clickable" id="stat-card-days" onclick="toggleStatsDetail()"><div class="stat-icon">📅</div><div class="stat-number" id="stat-days">{len(history_data)}</div><div class="stat-label">推送天数 <span style="font-size:0.7rem;opacity:0.6;">▸</span></div></div>
+    <div class="stat-card clickable" id="stat-card-days" onclick="toggleStatsDetail()"><div class="stat-icon">🏷️</div><div class="stat-number" id="stat-cats">-</div><div class="stat-label">覆盖领域 <span style="font-size:0.7rem;opacity:0.6;">▸</span></div></div>
 </div>'''
 
 CSS = '''<style>
@@ -268,6 +301,7 @@ html = f'''<!DOCTYPE html>
 <script>
 const papersData = {papers_json};
 const historyData = {history_json};
+const catData = {cat_json};
 function showPage(n) {{
     document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
     var t=document.getElementById('page-'+n);if(t)t.classList.add('active');
@@ -321,12 +355,22 @@ function setupSearch() {{
 function updateStats() {{
     document.getElementById('stat-today').textContent=papersData.papers?papersData.papers.length:0;
     document.getElementById('stat-total').textContent=historyData.reduce((s,h)=>s+(h.count||0),0);
-    document.getElementById('stat-days').textContent=historyData.length;
+    document.getElementById('stat-cats').textContent=Object.keys(catData).length;
     document.getElementById('header-date').textContent=papersData.date||new Date().toISOString().split('T')[0];
     // Build timeline for stats detail
     var maxC=Math.max(1,...historyData.map(h=>h.count||0));
     var tl=document.getElementById('stats-timeline');
-    if(tl)tl.innerHTML=historyData.map(h=>'<div class="tl-row"><span class="tl-date">📅 '+h.date+'</span><span class="tl-count">'+h.count+' 篇</span><div class="tl-bar"><div class="tl-fill" style="width:'+(100*(h.count||0)/maxC)+'%"></div></div></div>').join('');
+    if(tl){{
+        var catKeys=Object.keys(catData).sort((a,b)=>catData[b].count-catData[a].count);
+        var html='<h3>📊 覆盖领域</h3>';
+        catKeys.forEach(function(c){{
+            var d=catData[c];
+            html+='<div class="tl-row"><span class="tl-date">'+d.icon+' '+c+'</span><span class="tl-count">'+d.count+' 篇</span><div class="tl-bar"><div class="tl-fill" style="width:'+(100*d.count/papersData.papers.length)+'%"></div></div></div>';
+        }});
+        html+='<h3 style="margin-top:1.25rem;">📅 推送时间线</h3>';
+        html+=historyData.map(h=>'<div class="tl-row"><span class="tl-date">📅 '+h.date+'</span><span class="tl-count">'+h.count+' 篇</span><div class="tl-bar"><div class="tl-fill" style="width:'+(100*(h.count||0)/maxC)+'%"></div></div></div>').join('');
+        tl.innerHTML=html;
+    }}
 }}
 function toggleStatsDetail() {{
     var d=document.getElementById('stats-detail');
