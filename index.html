@@ -294,13 +294,13 @@ footer a:hover { text-decoration:underline; }
             <h2>关于每日论文推送</h2>
             <p>这是一个自动化论文推送系统，每天定时搜索并推送多模态推理 (Multimodal Reasoning) 领域的最新 arXiv 论文。</p>
             <h3>🎯 功能特性</h3>
-            <ul><li><strong>自动推送</strong>：每天上午 9:00 自动获取最新论文</li><li><strong>多层降级</strong>：arXiv API → Semantic Scholar → DeepSeek API，确保稳定获取</li><li><strong>论文解读</strong>：使用 AI 对每篇论文进行深度解读</li><li><strong>历史记录</strong>：查看过往推送记录</li><li><strong>在线搜索</strong>：实时搜索论文标题和作者</li></ul>
+            <ul><li><strong>自动推送</strong>：每天上午 9:00 自动获取最新论文，飞书即时通知</li><li><strong>多层降级</strong>：arXiv API → Semantic Scholar → DeepSeek API，确保稳定获取</li><li><strong>AI 论文解读</strong>：使用 DeepSeek 对每篇论文进行结构化深度解读</li><li><strong>领域分类</strong>：自动归类到视频理解、具身智能、数学推理等子领域</li><li><strong>历史记录</strong>：查看过往推送记录与推送时间线</li><li><strong>全文搜索</strong>：实时搜索今日及历史论文标题、作者</li></ul>
             <h3>🔧 技术栈</h3>
-            <ul><li>前端：原生 HTML + CSS + JavaScript</li><li>部署：GitHub Pages</li><li>数据源：arXiv API / Semantic Scholar API / DeepSeek API</li><li>推送：飞书机器人</li></ul>
+            <ul><li><strong>前端</strong>：原生 HTML + CSS + JavaScript（响应式设计、无框架依赖）</li><li><strong>部署</strong>：GitHub Pages 自动部署</li><li><strong>数据源</strong>：arXiv API → Semantic Scholar API → DeepSeek API（三层降级）</li><li><strong>AI 引擎</strong>：DeepSeek V4 Pro（论文解读、LLM 检索）</li><li><strong>推送</strong>：飞书开放平台 Bot</li></ul>
             <h3>📁 项目结构</h3>
-            <ul><li><code>index.html</code> - 网页主体</li><li><code>papers.json</code> - 当日论文数据</li><li><code>history.json</code> - 历史推送记录</li></ul>
+            <ul><li><code>index.html</code> - 网页主体（自动生成，数据嵌入）</li><li><code>build_v2.py</code> - 网页构建脚本（分类 + 美化渲染）</li><li><code>papers.json</code> - 当日论文数据</li><li><code>history.json</code> - 历史推送记录（30天）</li><li><code>push_papers.py</code> - 推送主控脚本</li></ul>
             <h3>🔗 相关链接</h3>
-            <ul><li>GitHub 仓库：<a href="https://github.com/LGSA-code/daily-paper-push" target="_blank">LGSA-code/daily-paper-push</a></li><li>arXiv 搜索：<a href="https://arxiv.org/search/?query=multimodal+reasoning" target="_blank">arxiv.org</a></li></ul>
+            <ul><li>GitHub 仓库：<a href="https://github.com/weber-xuu/daily-paper-push" target="_blank">weber-xuu/daily-paper-push</a></li><li>arXiv 搜索：<a href="https://arxiv.org/search/?query=multimodal+reasoning" target="_blank">arxiv.org</a></li></ul>
             <h3>👤 关于作者</h3>
             <p>由 <strong>栗子 (Hermes Agent)</strong> 自动生成和维护。</p>
             <p>如有问题或建议，欢迎通过飞书联系。</p>
@@ -308,7 +308,7 @@ footer a:hover { text-decoration:underline; }
     </div>
 </main>
 <footer>
-    <p>由 <a href="#" onclick="showPage('about');return false;">栗子 (Hermes Agent)</a> 自动生成 · 数据来自 arXiv</p>
+    <p>由 <a href="#" onclick="showPage('about');return false;">栗子 (Hermes Agent)</a> 自动生成 · arXiv / Semantic Scholar / DeepSeek</p>
     <p style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">每日上午 9:00 自动更新</p>
 </footer>
 <script>
