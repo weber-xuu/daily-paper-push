@@ -3,33 +3,11 @@
     "date": "2026-05-23",
     "count": 5,
     "titles": [
-      "Cambrian-P: Pose-Grounded Video Understanding",
-      "MotiMotion: Motion-Controlled Video Generation with Visual Reasoning",
-      "AwareVLN: Reasoning with Self-awareness for Vision-Language Navigation",
-      "GesVLA: Gesture-Aware Vision-Language-Action Model Embedded Representations",
-      "GS-QA: A Benchmark for Geospatial Question Answering"
-    ]
-  },
-  {
-    "date": "2026-05-22",
-    "count": 5,
-    "titles": [
-      "Learn to Explain: Multimodal Reasoning via Thought Chains for Science Question Answering",
-      "InternVL3.5: Advancing Open-Source Multimodal Models in Versatility, Reasoning, and Efficiency",
-      "R1-Onevision: Advancing Generalized Multimodal Reasoning Through Cross-Modal Formalization",
-      "GLM-4.1V-Thinking: Towards Versatile Multimodal Reasoning with Scalable Reinforcement Learning",
-      "MMMU: A Massive Multi-Discipline Multimodal Understanding and Reasoning Benchmark for Expert AGI"
-    ]
-  },
-  {
-    "date": "2026-05-21",
-    "count": 5,
-    "titles": [
-      "Equilibrium Reasoners: Learning Attractors Enables Scalable Reasoning",
-      "Uni-Edit: Intelligent Editing Is A General Task For Unified Model Tuning",
-      "DeepWeb-Bench: A Deep Research Benchmark Demanding Massive Cross-Source Evidence and Long-Horizon Derivation",
-      "WikiVQABench: A Knowledge-Grounded Visual Question Answering Benchmark from Wikipedia and Wikidata",
-      "You Only Need Minimal RLVR Training: Extrapolating LLMs via Rank-1 Trajectories"
+      "VILA-M3: Multi-modal Multi-task Learning with Visual Reasoning",
+      "Visual Reasoning with Spatial Attention: A New Benchmark for Scene Understanding",
+      "MathVerse: Does Your Multimodal LLM Truly See the Math in Diagrams?",
+      "Motion-Controlled Video Generation with Temporal Visual Reasoning",
+      "AwareVLN: Self-Aware Reasoning for Vision-Language Navigation in Complex Environments"
     ]
   }
 ]
