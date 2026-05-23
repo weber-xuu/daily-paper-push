@@ -68,7 +68,7 @@ pc = len(papers_data.get('papers', []))
 stats = f'''<div class="stats-bar" id="stats-bar">
     <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-number" id="stat-today">{pc}</div><div class="stat-label">今日论文</div></div>
     <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-number" id="stat-total">{tc}</div><div class="stat-label">累计推送</div></div>
-    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-number" id="stat-days">{len(history_data)}</div><div class="stat-label">推送天数</div></div>
+    <div class="stat-card clickable" id="stat-card-days" onclick="toggleStatsDetail()"><div class="stat-icon">📅</div><div class="stat-number" id="stat-days">{len(history_data)}</div><div class="stat-label">推送天数 <span style="font-size:0.7rem;opacity:0.6;">▸</span></div></div>
 </div>'''
 
 CSS = '''<style>
@@ -108,6 +108,23 @@ nav { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); border-bott
 .stat-icon { font-size:1.75rem; margin-bottom:0.5rem; }
 .stat-number { font-size:2rem; font-weight:700; color:var(--primary); line-height:1; }
 .stat-label { color:var(--text-light); font-size:0.85rem; margin-top:0.4rem; font-weight:500; }
+.stat-card.clickable { cursor:pointer; }
+.stat-card.clickable:hover { border-color:var(--accent-light); }
+.history-search-results { background:var(--card-bg); border-radius:var(--radius-md); padding:1.25rem 1.5rem; box-shadow:var(--shadow); border:1px solid var(--border-light); margin-top:1.5rem; }
+.history-search-results h3 { font-size:0.95rem; color:var(--accent); margin-bottom:0.75rem; font-weight:600; }
+.history-search-item { padding:0.5rem 0; border-bottom:1px solid var(--border-light); font-size:0.88rem; }
+.history-search-item:last-child { border-bottom:none; }
+.history-search-item .hs-title { color:var(--primary); font-weight:500; }
+.history-search-item .hs-meta { color:var(--text-light); font-size:0.8rem; margin-top:0.2rem; }
+.stats-detail { background:var(--card-bg); border-radius:var(--radius-md); padding:1.5rem; box-shadow:var(--shadow); border:1px solid var(--border-light); margin-top:1.5rem; display:none; }
+.stats-detail.show { display:block; }
+.stats-detail h3 { color:var(--primary); font-size:1.1rem; margin-bottom:1rem; font-weight:600; }
+.stats-detail .timeline { display:flex; flex-direction:column; gap:0.6rem; }
+.stats-detail .tl-row { display:flex; align-items:center; gap:0.75rem; font-size:0.88rem; }
+.stats-detail .tl-date { color:var(--accent); font-weight:600; min-width:85px; }
+.stats-detail .tl-count { color:var(--text-light); }
+.stats-detail .tl-bar { flex:1; height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
+.stats-detail .tl-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.5s ease; }
 .papers-grid { display:grid; gap:1.5rem; }
 .paper-card { background:var(--card-bg); border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; transition:var(--transition); border:1px solid var(--border-light); display:flex; }
 .paper-card:hover { box-shadow:var(--shadow-hover); transform:translateY(-3px); }
@@ -220,6 +237,7 @@ html = f'''<!DOCTYPE html>
     {stats}
     <div class="page-section active" id="page-today">
         <div id="search-info" class="search-results-info" style="display:none;"></div>
+        <div class="stats-detail" id="stats-detail"><h3>📊 推送时间线</h3><div class="timeline" id="stats-timeline"></div></div>
         <div class="papers-grid" id="papers-container">{cards_html}</div>
     </div>
     <div class="page-section" id="page-history">
@@ -265,12 +283,38 @@ function toggleAbstract(i) {{
 }}
 function setupSearch() {{
     var inp=document.getElementById('search-input');var inf=document.getElementById('search-info');
+    var histDiv=document.getElementById('history-search-results');
     inp.addEventListener('input',function(e) {{
         var kw=e.target.value.toLowerCase().trim();
         var cards=document.querySelectorAll('.paper-card');
-        if(!kw){{cards.forEach(c=>c.classList.remove('hidden'));inf.style.display='none';return;}}
+        if(!kw){{cards.forEach(c=>c.classList.remove('hidden'));inf.style.display='none';if(histDiv)histDiv.style.display='none';return;}}
+        // Search today's cards
         var v=0;cards.forEach(c=>{{var m=c.dataset.title.includes(kw)||c.dataset.authors.includes(kw)||c.textContent.toLowerCase().includes(kw);if(m){{c.classList.remove('hidden');v++}}else c.classList.add('hidden')}});
-        inf.style.display='block';inf.innerHTML='找到 <span class="highlight">'+v+'</span> 篇相关论文';
+        // Search history
+        var hResults=[];
+        historyData.forEach(function(day){{
+            day.titles.forEach(function(t,i){{
+                if(t.toLowerCase().includes(kw)){{
+                    hResults.push({{title:t,date:day.date,count:day.count}});
+                }}
+            }});
+        }});
+        var parts=['找到 <span class="highlight">'+v+'</span> 篇相关论文（今日推送）'];
+        if(hResults.length>0){{
+            parts.push('，历史记录中还有 <span class="highlight">'+hResults.length+'</span> 篇');
+            // Show history results section
+            if(!histDiv){{
+                histDiv=document.createElement('div');
+                histDiv.id='history-search-results';
+                histDiv.className='history-search-results';
+                document.getElementById('papers-container').after(histDiv);
+            }}
+            var hHtml='<h3>📅 历史记录中的匹配结果</h3>';
+            hResults.forEach(function(r){{hHtml+='<div class="history-search-item"><div class="hs-title">'+r.title+'</div><div class="hs-meta">📅 '+r.date+'</div></div>'}});
+            histDiv.innerHTML=hHtml;
+            histDiv.style.display='block';
+        }}else{{if(histDiv)histDiv.style.display='none';}}
+        inf.style.display='block';inf.innerHTML=parts.join('');
         if(!document.getElementById('page-today').classList.contains('active'))showPage('today');
     }});
 }}
@@ -279,6 +323,17 @@ function updateStats() {{
     document.getElementById('stat-total').textContent=historyData.reduce((s,h)=>s+(h.count||0),0);
     document.getElementById('stat-days').textContent=historyData.length;
     document.getElementById('header-date').textContent=papersData.date||new Date().toISOString().split('T')[0];
+    // Build timeline for stats detail
+    var maxC=Math.max(1,...historyData.map(h=>h.count||0));
+    var tl=document.getElementById('stats-timeline');
+    if(tl)tl.innerHTML=historyData.map(h=>'<div class="tl-row"><span class="tl-date">📅 '+h.date+'</span><span class="tl-count">'+h.count+' 篇</span><div class="tl-bar"><div class="tl-fill" style="width:'+(100*(h.count||0)/maxC)+'%"></div></div></div>').join('');
+}}
+function toggleStatsDetail() {{
+    var d=document.getElementById('stats-detail');
+    if(!d)return;
+    var btn=document.getElementById('stat-card-days');
+    if(d.classList.contains('show')){{d.classList.remove('show');if(btn)btn.style.borderColor='';}}
+    else{{d.classList.add('show');if(btn)btn.style.borderColor='var(--accent-light)';}}
 }}
 function init(){{setupSearch();updateStats();}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
