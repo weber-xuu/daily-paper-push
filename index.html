@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>每日论文推送 - 多模态推理</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!-- Using system fonts for China compatibility -->
 <style>
 :root {
     --primary: #1e3a5f; --primary-light: #2c5282; --secondary: #4a5568;
@@ -17,11 +17,11 @@
     --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); line-height:1.7; -webkit-font-smoothing:antialiased; }
+body { font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans SC',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; -webkit-font-smoothing:antialiased; }
 header { background:linear-gradient(135deg,var(--primary) 0%,#0f2744 100%); color:white; padding:4rem 0 3.5rem; text-align:center; position:relative; overflow:hidden; }
 header::before { content:''; position:absolute; top:-30%; right:-5%; width:400px; height:400px; background:radial-gradient(circle,rgba(221,107,32,0.15) 0%,transparent 70%); border-radius:50%; }
 header::after { content:''; position:absolute; bottom:-20%; left:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 70%); border-radius:50%; }
-header h1 { font-family:'Noto Serif SC',serif; font-size:2.8rem; font-weight:700; margin-bottom:0.75rem; position:relative; letter-spacing:-0.02em; }
+header h1 { font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Serif SC',Georgia,serif; font-size:2.8rem; font-weight:700; margin-bottom:0.75rem; position:relative; letter-spacing:-0.02em; }
 header .subtitle { font-size:1.15rem; opacity:0.85; font-weight:300; letter-spacing:0.02em; }
 header .date { display:inline-block; margin-top:1.25rem; padding:0.5rem 1.75rem; background:rgba(255,255,255,0.12); backdrop-filter:blur(10px); border-radius:50px; font-size:0.95rem; border:1px solid rgba(255,255,255,0.10); }
 nav { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-light); padding:0.875rem 0; position:sticky; top:0; z-index:100; box-shadow:var(--shadow); }
@@ -68,7 +68,7 @@ nav { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); border-bott
 .paper-header { padding:1.5rem 2rem 1rem; background:linear-gradient(135deg,#fafbfc 0%,#f7f8fa 100%); border-bottom:1px solid var(--border-light); }
 .paper-header-top { display:flex; align-items:flex-start; gap:0.875rem; }
 .paper-number { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:white; border-radius:10px; font-weight:700; font-size:0.95rem; flex-shrink:0; box-shadow:0 2px 8px rgba(221,107,32,0.3); }
-.paper-title { font-family:'Noto Serif SC',serif; font-size:1.25rem; font-weight:600; color:var(--primary); line-height:1.5; flex:1; }
+.paper-title { font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Serif SC',Georgia,serif; font-size:1.25rem; font-weight:600; color:var(--primary); line-height:1.5; flex:1; }
 .paper-meta { display:flex; gap:1.25rem; margin-top:0.875rem; flex-wrap:wrap; padding-left:2.75rem; }
 .meta-item { font-size:0.82rem; color:var(--text-light); display:flex; align-items:center; gap:0.35rem; }
 .meta-icon { opacity:0.7; }
@@ -113,7 +113,7 @@ footer a:hover { text-decoration:underline; }
 .history-title { font-size:0.88rem; color:var(--text); padding-left:1.25rem; position:relative; line-height:1.5; }
 .history-title::before { content:''; position:absolute; left:0.25rem; top:0.5rem; width:6px; height:6px; background:var(--accent); border-radius:50%; }
 .about-content { background:var(--card-bg); border-radius:var(--radius-lg); padding:2.5rem; box-shadow:var(--shadow); border:1px solid var(--border-light); max-width:800px; margin:0 auto; }
-.about-content h2 { font-family:'Noto Serif SC',serif; color:var(--primary); margin-bottom:1.25rem; font-size:1.7rem; }
+.about-content h2 { font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Serif SC',Georgia,serif; color:var(--primary); margin-bottom:1.25rem; font-size:1.7rem; }
 .about-content h3 { color:var(--accent); margin-top:1.75rem; margin-bottom:0.75rem; font-size:1.15rem; font-weight:600; }
 .about-content p { margin-bottom:1rem; line-height:1.8; }
 .about-content ul { margin-left:1.5rem; margin-bottom:1rem; }
