@@ -54,14 +54,28 @@ cat_json = json.dumps(cat_counts, ensure_ascii=False)
 # Build paper cards
 cards = []
 for i, p in enumerate(papers_data.get('papers', [])):
-    tags = ''.join([f'<span class="tag category">{c}</span>' for c in p.get('categories', [])])
+    cats = classify_paper(p.get("title", ""), p.get("summary", ""))
+    cat_names = [c[0] for c in cats]
+    cat_data = '|'.join(cat_names)  # data-categories for JS filtering
+    tags = ''.join([f'<span class="tag category" data-cat="{c}">{c}</span>' for c in cat_names])
+    
+    # Figures section
+    figures_html = ''
+    if p.get('figures'):
+        figs = p['figures'][:2]  # max 2 figures
+        for fi, fig in enumerate(figs):
+            figures_html += f'''<div class="paper-figure-wrap">
+                <img src="{fig['url']}" alt="{fig.get('caption','')}" class="paper-figure" loading="lazy" onerror="this.parentElement.style.display='none'">
+                <div class="figure-caption">{fig.get('caption', f'Figure {fi+1}')}</div>
+            </div>'''
+    
     analysis = ''
     if p.get('analysis'):
         analysis = '<div class="analysis-section"><div class="analysis-header"><span class="analysis-icon">💡</span><span class="analysis-label">论文解读</span></div><div class="analysis-content">' + p['analysis'].replace('\n', '<br>') + '</div></div>'
     aid = p.get('id', '')
     pdf = f"https://arxiv.org/pdf/{aid}" if aid and (aid.replace('.', '').isdigit() or 'arxiv' in aid.lower()) else p.get('link', '#')
     s = p.get('summary', '') or '暂无摘要'
-    cards.append(f'''<article class="paper-card" data-title="{p.get('title','').lower()}" data-authors="{p.get('authors','').lower()}">
+    cards.append(f'''<article class="paper-card" data-title="{p.get('title','').lower()}" data-authors="{p.get('authors','').lower()}" data-categories="{cat_data}">
     <div class="paper-accent-bar"></div>
     <div class="paper-main">
         <div class="paper-header">
@@ -75,6 +89,7 @@ for i, p in enumerate(papers_data.get('papers', [])):
                 <div class="abstract-content" id="abstract-{i}">{s}</div>
                 <button class="abstract-toggle" onclick="toggleAbstract({i})"><span class="toggle-text">展开</span><span class="toggle-icon">▼</span></button>
             </div>
+            {figures_html}
             {analysis}
         </div>
         <div class="paper-actions">
@@ -162,6 +177,25 @@ nav { background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); border-bott
 .paper-card { background:var(--card-bg); border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; transition:var(--transition); border:1px solid var(--border-light); display:flex; }
 .paper-card:hover { box-shadow:var(--shadow-hover); transform:translateY(-3px); }
 .paper-card.hidden { display:none; }
+/* Category filter bar */
+.cat-filter-bar { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; padding:1rem 1.25rem; background:var(--card-bg); border-radius:var(--radius-md); box-shadow:var(--shadow); border:1px solid var(--border-light); align-items:center; }
+.cat-filter-bar .filter-label { font-size:0.85rem; font-weight:600; color:var(--text-light); margin-right:0.25rem; white-space:nowrap; }
+.cat-filter-pill { padding:0.35rem 0.9rem; border-radius:50px; font-size:0.8rem; font-weight:500; cursor:pointer; border:1px solid var(--border); background:white; color:var(--text-light); transition:var(--transition); font-family:inherit; white-space:nowrap; }
+.cat-filter-pill:hover { border-color:var(--accent-light); color:var(--accent); background:var(--accent-soft); }
+.cat-filter-pill.active { background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:white; border-color:transparent; box-shadow:0 2px 8px rgba(221,107,32,0.3); }
+/* Clickable category tags on cards */
+.tag.category { cursor:pointer; transition:var(--transition); }
+.tag.category:hover { background:var(--accent-soft); color:var(--accent); transform:scale(1.05); }
+/* Paper figures */
+.paper-figure-wrap { margin:1rem 0; text-align:center; background:#fafbfc; border-radius:var(--radius-sm); padding:0.75rem; border:1px solid var(--border-light); }
+.paper-figure { max-width:100%; height:auto; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer; transition:transform 0.2s; }
+.paper-figure:hover { transform:scale(1.02); }
+.figure-caption { font-size:0.8rem; color:var(--text-light); margin-top:0.5rem; font-style:italic; line-height:1.4; }
+/* Fullscreen figure viewer */
+.figure-viewer { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center; cursor:pointer; }
+.figure-viewer.show { display:flex; }
+.figure-viewer img { max-width:95vw; max-height:90vh; border-radius:8px; }
+.figure-viewer .close-hint { position:absolute; top:1rem; right:1.5rem; color:white; font-size:2rem; opacity:0.7; }
 .paper-accent-bar { width:4px; background:linear-gradient(180deg,var(--accent) 0%,var(--accent-light) 100%); flex-shrink:0; }
 .paper-main { flex:1; min-width:0; }
 .paper-header { padding:1.5rem 2rem 1rem; background:linear-gradient(135deg,#fafbfc 0%,#f7f8fa 100%); border-bottom:1px solid var(--border-light); }
@@ -268,6 +302,10 @@ html = f'''<!DOCTYPE html>
 </nav>
 <main class="container">
     {stats}
+    <div class="cat-filter-bar" id="cat-filter-bar">
+        <span class="filter-label">🔬 领域筛选：</span>
+        <button class="cat-filter-pill active" data-cat="__all__">全部</button>
+    </div>
     <div class="page-section active" id="page-today">
         <div id="search-info" class="search-results-info" style="display:none;"></div>
         <div class="stats-detail" id="stats-detail"><h3>📊 推送时间线</h3><div class="timeline" id="stats-timeline"></div></div>
@@ -296,7 +334,7 @@ html = f'''<!DOCTYPE html>
 </main>
 <footer>
     <p>由 <a href="#" onclick="showPage('about');return false;">栗子 (Hermes Agent)</a> 自动生成 · arXiv / Semantic Scholar / DeepSeek</p>
-    <p style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">每日上午 9:00 自动更新 · <a href="https://cdn.jsdelivr.net/gh/weber-xuu/daily-paper-push@main/index.html">CDN 镜像</a></p>
+    <p style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">每日上午 9:00 自动更新 · 托管于 <a href="https://github.com/weber-xuu/daily-paper-push">GitHub</a></p>
 </footer>
 <script>
 const papersData = {papers_json};
@@ -379,7 +417,85 @@ function toggleStatsDetail() {{
     if(d.classList.contains('show')){{d.classList.remove('show');if(btn)btn.style.borderColor='';}}
     else{{d.classList.add('show');if(btn)btn.style.borderColor='var(--accent-light)';}}
 }}
-function init(){{setupSearch();updateStats();}}
+function setupCatFilter() {{
+    // Collect all unique categories from paper cards
+    var cats=[];var seen={{}};
+    document.querySelectorAll('.paper-card').forEach(function(card){{
+        var catStr=card.dataset.categories||'';
+        catStr.split('|').forEach(function(c){{
+            if(c&&c!=='Other'&&!seen[c]){{seen[c]=true;cats.push(c);}}
+        }});
+    }});
+    cats.sort();
+    // Build filter pills
+    var bar=document.getElementById('cat-filter-bar');
+    if(!bar)return;
+    cats.forEach(function(c){{
+        var btn=document.createElement('button');
+        btn.className='cat-filter-pill';
+        btn.dataset.cat=c;
+        btn.textContent=c;
+        btn.addEventListener('click',function(){{filterByCategory(c);}});
+        bar.appendChild(btn);
+    }});
+    // "全部" button
+    var allBtn=bar.querySelector('[data-cat="__all__"]');
+    if(allBtn)allBtn.addEventListener('click',function(){{filterByCategory('__all__');}});
+    // Clickable category tags on cards
+    document.querySelectorAll('.tag.category').forEach(function(tag){{
+        tag.addEventListener('click',function(e){{
+            e.stopPropagation();
+            filterByCategory(this.dataset.cat);
+        }});
+    }});
+}}
+function filterByCategory(cat) {{
+    // Update pill active state
+    document.querySelectorAll('.cat-filter-pill').forEach(function(p){{
+        p.classList.toggle('active',p.dataset.cat===cat);
+    }});
+    // Show/hide cards
+    var count=0;
+    document.querySelectorAll('.paper-card').forEach(function(card){{
+        if(cat==='__all__'){{
+            card.classList.remove('hidden');count++;
+        }}else{{
+            var cardCats=(card.dataset.categories||'').split('|');
+            if(cardCats.indexOf(cat)>=0){{card.classList.remove('hidden');count++;}}
+            else{{card.classList.add('hidden');}}
+        }}
+    }});
+    // Update search info
+    var inf=document.getElementById('search-info');
+    if(inf&&cat!=='__all__'){{
+        inf.style.display='block';
+        inf.innerHTML='📍 筛选 <span class=\"highlight\">'+cat+'</span>：<span class=\"highlight\">'+count+'</span> 篇论文';
+    }}else if(inf){{
+        inf.style.display='none';
+    }}
+    // Hide history search results when filtering
+    var histDiv=document.getElementById('history-search-results');
+    if(histDiv)histDiv.style.display='none';
+}}
+function setupFigureViewer() {{
+    // Create viewer element
+    var viewer=document.createElement('div');
+    viewer.className='figure-viewer';
+    viewer.id='figure-viewer';
+    viewer.innerHTML='<span class=\"close-hint\">✕</span><img src=\"\" alt=\"\">';
+    viewer.addEventListener('click',function(){{this.classList.remove('show');}});
+    document.body.appendChild(viewer);
+    // Click on figures to open viewer
+    document.querySelectorAll('.paper-figure').forEach(function(img){{
+        img.addEventListener('click',function(e){{
+            e.stopPropagation();
+            var v=document.getElementById('figure-viewer');
+            v.querySelector('img').src=this.src;
+            v.classList.add('show');
+        }});
+    }});
+}}
+function init(){{setupSearch();setupCatFilter();setupFigureViewer();updateStats();}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 </script>
 </body>
